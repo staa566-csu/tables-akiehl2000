@@ -40,7 +40,8 @@ plt_data <- data %>%
   # aggregate data by team
   group_by(Tm) %>%
   # calculate per game averages of stats
-  summarize(PTS = NA, 
+  summarize(Logo = NA,
+            PTS = NA, 
             PIM = sum(PIM) / 82,
             EVG = sum(EVG)/ 82,
             EVA = sum(EVA)/ 82,
@@ -206,13 +207,21 @@ for (team in plt_data$Tm) {
                                                       width = 150)
 }
 
+# add team logos to table
+for (team in 1:nrow(plt_data)) {
+  plt_data$Logo[team] <- paste0('<img src=./Images/', 
+                                team, 
+                                '.png width=50 height=50>')
+}
+
 # make table of aggregated values
 plt_data %>%
+  select(c(Logo, Tm, PTS, PIM, EVG, EVA, PPG, PPA, S, SPer)) %>%
   kbl(escape = FALSE,
       # set table title
       caption = 'Per Game Averages by Team',
       # set column names
-      col.names = c('Team', 'Points', 'Penalty Mins', 'Goals', 'Assists', 
+      col.names = c('', 'Team', 'Points', 'Penalty Mins', 'Goals', 'Assists', 
                     'Goals', 'Assists', 'Total', 'Percent'),
       # set column alignments
       align = c('l', 'c', rep('r', 7))) %>%
@@ -220,7 +229,7 @@ plt_data %>%
   kable_styling(font_size = 15,
                 fixed_thead = TRUE) %>%
   # generate super headers
-  add_header_above(c(rep('', 3), 
+  add_header_above(c(rep('', 4), 
                      'Even-Strength' = 2, 
                      'Power-Play' = 2, 
                      'Shooting' = 2)) %>%
