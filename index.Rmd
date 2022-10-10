@@ -15,4 +15,13 @@ library(tidyverse)
 - Table functionality
 - Table formatting
 
+```{r}
+# read in the data from a .csv file
+data <- read.csv('players.csv') %>%
+  # rename misnamed fields
+  rename(PlusMinus = 'X...',
+         SPer = 'S.')
+
+head(data)
+```
 
