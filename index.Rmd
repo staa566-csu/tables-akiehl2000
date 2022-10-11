@@ -14,10 +14,14 @@ library(sparkline) # interactivity
 sparkline(0)
 ```
 
-- Data source
-- What you want to convey
-- Table functionality
-- Table formatting
+`Data Source`: Regular season skating data from the 2021-22 NHL season were used for this table. The data were downloaded from https://www.hockey-reference.com/leagues/NHL_2022_skaters.html as a .csv file and cleaned slightly in Microsoft Excel (for formatting only). All team logo .png files were downloaded from Wikipedia. 
+  
+`Purpose`: The purpose of this table is to show various offensive statistics in hockey aggregated by team and averaged across an 82 game season. Of specific interest is the breakdown of goals and assists into even-strength and power-play categories. The number of power plays given up and converted by a team is increadibly important to its success. Additionally, information concerning teams' relative shooting volumes and percentages are given. Viewers of this table should be able to discern what the best and worst offensive teams in the league are and which teams have the most successful power-play production. 
+  
+`Functionality`: The table includes several interactive features. The first is a column of boxplots that visualize the distribution of point scoring on each team. All plots were placed on the same scale to be directly comparable. If the user hovers over these plots, the specific quantiles and outliers are displayed in a pop-up box. Additionally, hovering over a row will highlight it in gray to help users keep track of where they are in the table. Finally, the header was fixed so that it stays visible even when the user scroll down the long list. 
+  
+`Formatting`: Several formatting choices were made to make this table more usable. The first was create super headers for even-strength, power-play, and shooting to clean up the previously long column names. Next, all values were rounded to two decimal places, right-aligned, and conditional formatting was applied to highlight the top and bottom 3 teams in each stat category. The last was done to help the user better understand who the top and bottom performers in the league are. An aesthetic theme was applied to the table to give it a clean look and to alternate its rows with white and grey shading to give the user more contrast between rows, making the table easier to read. Finally, team logos were added to the front of the table to assist users who may not wish to translate the abbrevaiated team names given. 
+  
 
 ```{r}
 # read in the data from a .csv file
