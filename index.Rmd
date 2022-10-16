@@ -1,0 +1,242 @@
+---
+title: 'Homework #4'
+author: "Adam Kiehl"
+date: "2022-10-10"
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse) # dplyr
+library(knitr) # kable
+library(kableExtra) # extension of kable
+library(sparkline) # interactivity
+sparkline(0)
+```
+
+`Data Source`: Regular season skating data from the 2021-22 NHL season were used for this table. The data were downloaded from https://www.hockey-reference.com/leagues/NHL_2022_skaters.html as a .csv file and cleaned slightly in Microsoft Excel (for formatting only). All team logo .png files were downloaded from Wikipedia. 
+  
+`Purpose`: The purpose of this table is to show various offensive statistics in hockey aggregated by team and averaged across an 82 game season. Of specific interest is the breakdown of goals and assists into even-strength and power-play categories. The number of power plays given up and converted by a team is increadibly important to its success. Additionally, information concerning teams' relative shooting volumes and percentages are given. Viewers of this table should be able to discern what the best and worst offensive teams in the league are and which teams have the most successful power-play production. 
+  
+`Functionality`: The table includes several interactive features. The first is a column of boxplots that visualize the distribution of point scoring on each team. All plots were placed on the same scale to be directly comparable. If the user hovers over these plots, the specific quantiles and outliers are displayed in a pop-up box. Additionally, hovering over a row will highlight it in gray to help users keep track of where they are in the table. Finally, the header was fixed so that it stays visible even when the user scroll down the long list. 
+  
+`Formatting`: Several formatting choices were made to make this table more usable. The first was create super headers for even-strength, power-play, and shooting to clean up the previously long column names. Next, all values were rounded to two decimal places, right-aligned, and conditional formatting was applied to highlight the top and bottom 3 teams in each stat category. The last was done to help the user better understand who the top and bottom performers in the league are. An aesthetic theme was applied to the table to give it a clean look and to alternate its rows with white and grey shading to give the user more contrast between rows, making the table easier to read. Finally, team logos were added to the front of the table to assist users who may not wish to translate the abbrevaiated team names given. 
+  
+
+```{r}
+# read in the data from a .csv file
+data <- read.csv('players.csv') %>%
+  # rename misnamed fields
+  rename(PlusMinus = 'X...',
+         SPer = 'S.') %>%
+  # filter out unneeded data
+  filter(Player != '',
+         Tm != 'TOT')
+
+head(data)
+```
+
+```{r, message=FALSE}
+# aggregate data for display
+plt_data <- data %>%
+  # filter for players who have at least one point
+  filter(PTS > 0) %>%
+  # aggregate data by team
+  group_by(Tm) %>%
+  # calculate per game averages of stats
+  summarize(Logo = NA,
+            PTS = NA, 
+            PIM = sum(PIM) / 82,
+            EVG = sum(EVG)/ 82,
+            EVA = sum(EVA)/ 82,
+            PPG = sum(PPG)/ 82,
+            PPA = sum(PPA) / 82,
+            S = sum(S) / 82,
+            SPer = mean(SPer, na.rm = TRUE)) %>%
+  as.data.frame()
+
+# conditional formatting for PIM column
+top3 <- plt_data$PIM %in% (plt_data %>% 
+                             arrange(desc(PIM)) %>% 
+                             select(PIM) %>% 
+                             top_n(3) %>%
+                             pull(PIM))
+bottom3 <- plt_data$PIM %in% (plt_data %>% 
+                                arrange(desc(PIM)) %>% 
+                                select(PIM) %>% 
+                                top_n(-3) %>%
+                                pull(PIM))
+neither <- !top3 & !bottom3
+plt_data$PIM[top3] <- cell_spec(round(plt_data$PIM[top3], 2), 
+                                color = 'green', 
+                                bold = TRUE)
+plt_data$PIM[bottom3] <- cell_spec(round(as.numeric(plt_data$PIM[bottom3]), 2), 
+                                   color = 'red', 
+                                   bold = TRUE)
+plt_data$PIM[neither] <- cell_spec(round(as.numeric(plt_data$PIM[neither]), 2))
+
+# conditional formatting for EVG column
+top3 <- plt_data$EVG %in% (plt_data %>% 
+                             arrange(desc(EVG)) %>% 
+                             select(EVG) %>% 
+                             top_n(3) %>%
+                             pull(EVG))
+bottom3 <- plt_data$EVG %in% (plt_data %>% 
+                                arrange(desc(EVG)) %>% 
+                                select(EVG) %>% 
+                                top_n(-3) %>%
+                                pull(EVG))
+neither <- !top3 & !bottom3
+plt_data$EVG[top3] <- cell_spec(round(plt_data$EVG[top3], 2),
+                                color = 'green', 
+                                bold = TRUE)
+plt_data$EVG[bottom3] <- cell_spec(round(as.numeric(plt_data$EVG[bottom3]), 2), 
+                                   color = 'red', 
+                                   bold = TRUE)
+plt_data$EVG[neither] <- cell_spec(round(as.numeric(plt_data$EVG[neither]), 2))
+
+# conditional formatting for EVA column
+top3 <- plt_data$EVA %in% (plt_data %>% 
+                             arrange(desc(EVA)) %>% 
+                             select(EVA) %>% 
+                             top_n(3) %>%
+                             pull(EVA))
+bottom3 <- plt_data$EVA %in% (plt_data %>% 
+                                arrange(desc(EVA)) %>% 
+                                select(EVA) %>% 
+                                top_n(-3) %>%
+                                pull(EVA))
+neither <- !top3 & !bottom3
+plt_data$EVA[top3] <- cell_spec(round(plt_data$EVA[top3], 2), 
+                                color = 'green', 
+                                bold = TRUE)
+plt_data$EVA[bottom3] <- cell_spec(round(as.numeric(plt_data$EVA[bottom3]), 2), 
+                                   color = 'red', 
+                                   bold = TRUE)
+plt_data$EVA[neither] <- cell_spec(round(as.numeric(plt_data$EVA[neither]), 2))
+
+# conditional formatting for PPG column
+top3 <- plt_data$PPG %in% (plt_data %>% 
+                             arrange(desc(PPG)) %>% 
+                             select(PPG) %>% 
+                             top_n(3) %>%
+                             pull(PPG))
+bottom3 <- plt_data$PPG %in% (plt_data %>% 
+                                arrange(desc(PPG)) %>% 
+                                select(PPG) %>% 
+                                top_n(-3) %>%
+                                pull(PPG))
+neither <- !top3 & !bottom3
+plt_data$PPG[top3] <- cell_spec(round(plt_data$PPG[top3], 2), 
+                                color = 'green', 
+                                bold = TRUE)
+plt_data$PPG[bottom3] <- cell_spec(round(as.numeric(plt_data$PPG[bottom3]), 2), 
+                                   color = 'red', 
+                                   bold = TRUE)
+plt_data$PPG[neither] <- cell_spec(round(as.numeric(plt_data$PPG[neither]), 2))
+
+# conditional formatting for PPA column
+top3 <- plt_data$PPA %in% (plt_data %>% 
+                             arrange(desc(PPA)) %>% 
+                             select(PPA) %>% 
+                             top_n(3) %>%
+                             pull(PPA))
+bottom3 <- plt_data$PPA %in% (plt_data %>% 
+                                arrange(desc(PPA)) %>% 
+                                select(PPA) %>% 
+                                top_n(-3) %>%
+                                pull(PPA))
+neither <- !top3 & !bottom3
+plt_data$PPA[top3] <- cell_spec(round(plt_data$PPA[top3], 2), 
+                                color = 'green', 
+                                bold = TRUE)
+plt_data$PPA[bottom3] <- cell_spec(round(as.numeric(plt_data$PPA[bottom3]), 2), 
+                                   color = 'red', 
+                                   bold = TRUE)
+plt_data$PPA[neither] <- cell_spec(round(as.numeric(plt_data$PPA[neither]), 2))
+
+# conditional formatting for S column
+top3 <- plt_data$S %in% (plt_data %>% 
+                             arrange(desc(S)) %>% 
+                             select(S) %>% 
+                             top_n(3) %>%
+                             pull(S))
+bottom3 <- plt_data$S %in% (plt_data %>% 
+                                arrange(desc(S)) %>% 
+                                select(S) %>% 
+                                top_n(-3) %>%
+                                pull(S))
+neither <- !top3 & !bottom3
+plt_data$S[top3] <- cell_spec(round(plt_data$S[top3], 2), 
+                                color = 'green', 
+                                bold = TRUE)
+plt_data$S[bottom3] <- cell_spec(round(as.numeric(plt_data$S[bottom3]), 2), 
+                                   color = 'red', 
+                                   bold = TRUE)
+plt_data$S[neither] <- cell_spec(round(as.numeric(plt_data$S[neither]), 2))
+
+# conditional formatting for SPer column
+top3 <- plt_data$SPer %in% (plt_data %>% 
+                             arrange(desc(SPer)) %>% 
+                             select(SPer) %>% 
+                             top_n(3) %>%
+                             pull(SPer))
+bottom3 <- plt_data$SPer %in% (plt_data %>% 
+                                arrange(desc(SPer)) %>% 
+                                select(SPer) %>% 
+                                top_n(-3) %>%
+                                pull(SPer))
+neither <- !top3 & !bottom3
+plt_data$SPer[top3] <- cell_spec(round(plt_data$SPer[top3], 2), 
+                                color = 'green', 
+                                bold = TRUE)
+plt_data$SPer[bottom3] <- cell_spec(round(as.numeric(plt_data$SPer[bottom3]), 2), 
+                                   color = 'red', 
+                                   bold = TRUE)
+plt_data$SPer[neither] <- cell_spec(round(as.numeric(plt_data$SPer[neither]), 2))
+
+# add mini plots to table
+for (team in plt_data$Tm) {
+  # vector of player points by team
+  team_pts <- data %>%
+    filter(Tm == team) %>%
+    pull(PTS)
+
+  # construct boxplot for table
+  plt_data$PTS[which(plt_data$Tm == team)] <- spk_chr(team_pts,
+                                                      type = 'box',
+                                                      chartRangeMin = 0,
+                                                      chartRangeMax = max(
+                                                        data$PTS),
+                                                      width = 150)
+}
+
+# add team logos to table
+for (team in 1:nrow(plt_data)) {
+  plt_data$Logo[team] <- paste0('<img src=./Images/', 
+                                team, 
+                                '.png width=50 height=50>')
+}
+
+# make table of aggregated values
+plt_data %>%
+  select(c(Logo, Tm, PTS, PIM, EVG, EVA, PPG, PPA, S, SPer)) %>%
+  kbl(escape = FALSE,
+      # set table title
+      caption = 'Per Game Averages by Team',
+      # set column names
+      col.names = c('', 'Team', 'Points', 'Penalty Mins', 'Goals', 'Assists', 
+                    'Goals', 'Assists', 'Total', 'Percent'),
+      # set column alignments
+      align = c('l', 'c', rep('r', 7))) %>%
+  # table styling
+  kable_styling(font_size = 15,
+                fixed_thead = TRUE) %>%
+  # generate super headers
+  add_header_above(c(rep('', 4), 
+                     'Even-Strength' = 2, 
+                     'Power-Play' = 2, 
+                     'Shooting' = 2)) %>%
+  # set table theme
+  kable_material(lightable_options = c('striped', 'hover'))
+```
